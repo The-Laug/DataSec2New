@@ -1,5 +1,6 @@
 package org.example.Client;
 
+import org.example.Shared.AuthenticationService;
 import org.example.Shared.PrintService;
 
 import java.rmi.registry.LocateRegistry;
@@ -11,37 +12,30 @@ public class ClientAuthenticator {
     private String token;
 
     public static void main(String[] var0) throws Exception {
-        ClientAuthenticator var1 = new ClientAuthenticator();
-        printHashedPassword("password", "7ae2d8014af07d24644ef21ee260d0db");
-        var1.authenticate();
+        String var1 = "localhost";
+        Registry var2 = LocateRegistry.getRegistry(var1, 5099); // Ensure port matches
+        PrintService printService = (PrintService) var2.lookup("PrintService"); // Look up by name
+        ClientAuthenticator client = new ClientAuthenticator();
+        client.authenticate(printService,"lauge","password");
+
     }
 
-    public  void authenticate() {
-        String var1 = "localhost";
+    public  void authenticate(PrintService printService,String username, String password) {
         try {
-            // Connect to the RMI registry on port 5099
-            Registry var2 = LocateRegistry.getRegistry(var1, 5099); // Ensure port matches
-            // Look up the PrintService object
-            PrintService var3 = (PrintService) var2.lookup("PrintService"); // Look up by name
-
-            // Trying to authenticate. First sending empty clientResponse, to get challenge from server
-            String[] challengeArr = var3.authenticate("lauge", null);
+            String[] challengeArr = AuthenticationService.authenticate(username, null);
             //When getting challenge from server, we hash the password with the salt and challenge
             String salt = challengeArr[0];
             String challengeString = challengeArr[1];
-            String hashedPassword = hashPassword("password", salt, challengeString);
+            String hashedPassword = hashPassword(password, salt, challengeString);
 
 
 
             // Sending hashed password to server and getting the token
-            String[] tokenArr = var3.authenticate("lauge", hashedPassword);
+            String[] tokenArr = printService.authenticate(username, hashedPassword);
             String token = tokenArr[0];
             this.token = token;
-             System.out.println("Token: " + tokenArr[0]);
              //var3.print("ABC123");
-             var3.print(token);
-             Thread.sleep(2000);
-             var3.print(token);
+             printService.print("text.txt","Printer.txt" , token);
             // System.out.println("Hashed password with salt and challenge: " + hashedPassword);
         } catch (Exception var5) {
             System.err.println("Client exception: " + var5.toString());
