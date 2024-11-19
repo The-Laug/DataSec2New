@@ -37,6 +37,10 @@ public class ClientAuthenticator {
             String token = tokenArr[0];
             this.token = token;
              System.out.println("Token: " + tokenArr[0]);
+             //var3.print("ABC123");
+             var3.print(token);
+             Thread.sleep(2000);
+             var3.print(token);
             // System.out.println("Hashed password with salt and challenge: " + hashedPassword);
         } catch (Exception var5) {
             System.err.println("Client exception: " + var5.toString());

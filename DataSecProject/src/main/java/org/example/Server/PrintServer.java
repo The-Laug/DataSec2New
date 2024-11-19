@@ -1,5 +1,10 @@
 package org.example.Server;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.example.Client.BinAscii;
 import org.example.Client.ClientAuthenticator;
 import org.example.Shared.PrintService;
@@ -9,20 +14,21 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.Key;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.fasterxml.jackson.databind.type.LogicalType.DateTime;
 
 
 public class PrintServer implements PrintService {
+    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256); // Generate a secure random key
     private final Map<String, String> activeChallenges = new ConcurrentHashMap<>(); // username -> challenge
     private final Map<String, String> activeTokens = new ConcurrentHashMap<>(); // token -> username
     private final Map<String, Long> tokenExpiry = new ConcurrentHashMap<>(); // token -> expiry time
-    private static final long TOKEN_LIFETIME_MS = 1000; // 5 minutes = 5 * 60 * 1000
+    private static final long TOKEN_LIFETIME_MS = 5*60*1000; // 5 minutes = 5 * 60 * 1000
 
     public PrintServer() {
 
@@ -43,8 +49,14 @@ public class PrintServer implements PrintService {
     private PasswdFileManager passwdFileManager = new PasswdFileManager("src/main/java/org/example/resources/passwd");
 
     @Override
-    public String print() throws RemoteException {
-        System.out.println("The printer has printed 2");
+    public String print(String token) throws RemoteException {
+        if (!validateToken(token)) {
+            System.out.println("Invalid token");
+            //throw new RemoteException("Invalid token");
+        } else {
+            System.out.println("Token is valid and works for: " + 2 + " ms");
+            System.out.println("User is printing");
+        }
         return null;
     }
 
@@ -76,7 +88,7 @@ public class PrintServer implements PrintService {
 
 
                     // Generate and store token
-                    String token = generateToken();
+                    String token = generateToken(username);
                     activeTokens.put(token, username);
                     tokenExpiry.put(token, System.currentTimeMillis() + TOKEN_LIFETIME_MS);
                     String[] tokenArr = new String[]{token};
@@ -136,37 +148,38 @@ public class PrintServer implements PrintService {
 
 
     // Generate a secure token
-    private String generateToken() {
-        SecureRandom random = new SecureRandom();
-        byte[] tokenBytes = new byte[32];
-        random.nextBytes(tokenBytes);
-        return Base64.getEncoder().encodeToString(tokenBytes);
+    // Generate a JWT
+    public String generateToken(String username) {
+        long now = System.currentTimeMillis();
+        long expiryTime = TOKEN_LIFETIME_MS + now;
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date(now))
+                .setExpiration(new Date(expiryTime))
+                .signWith(key)
+                .compact();
     }
 
-    // Validate token
+    // Validate a JWT
     public boolean validateToken(String token) {
-        if (!activeTokens.containsKey(token)) {
-            return false; // Token not found
-        }
-
-        long expiryTime = tokenExpiry.get(token);
-        if (System.currentTimeMillis() > expiryTime) {
-            // Token expired
-            activeTokens.remove(token);
-            tokenExpiry.remove(token);
+        try {
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            return true;
+        } catch (JwtException e) {
+            System.err.println("Invalid or expired JWT: " + e.getMessage());
             return false;
         }
-
-        return true;
     }
 
-
-    // Logout (invalidate token)
-    public void logout(String token) {
-        activeTokens.remove(token);
-        tokenExpiry.remove(token);
+    // Extract username from a JWT
+    public String getUsernameFromToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.getSubject();
     }
-
 
 
 
