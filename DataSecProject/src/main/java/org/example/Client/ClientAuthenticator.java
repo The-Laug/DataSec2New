@@ -10,8 +10,9 @@ public class ClientAuthenticator {
     }
     private String token;
 
-    public static void main(String[] var0) {
+    public static void main(String[] var0) throws Exception {
         ClientAuthenticator var1 = new ClientAuthenticator();
+        printHashedPassword("password", "7ae2d8014af07d24644ef21ee260d0db");
         var1.authenticate();
     }
 
@@ -46,6 +47,13 @@ public class ClientAuthenticator {
             System.err.println("Client exception: " + var5.toString());
             var5.printStackTrace();
         }
+    }
+
+    public static void printHashedPassword(String password, String salt) throws Exception {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        String combined = password + salt;
+        byte[] hashed = digest.digest(combined.getBytes());
+        System.out.println(bytesToHex(hashed));
     }
 
     //Function to hash password with salt and challenge
