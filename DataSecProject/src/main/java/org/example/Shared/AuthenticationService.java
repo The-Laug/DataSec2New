@@ -1,14 +1,11 @@
 package org.example.Shared;
 
+import java.io.IOException;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-public interface AuthenticationService {
+public interface AuthenticationService extends Remote {
+    String[] authenticate(String username, String clientResponse) throws RemoteException, IOException;
 
-    String[] authenticate(String username, String clientResponse) throws RemoteException;
-
-    boolean validateToken(String token);
-
-    String getUsernameFromToken(String token);
-
-
+    boolean validateToken(String token) throws RemoteException;
 }
