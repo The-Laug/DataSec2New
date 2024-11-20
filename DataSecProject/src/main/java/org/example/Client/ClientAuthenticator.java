@@ -22,13 +22,13 @@ public class ClientAuthenticator {
 
             // Hash the password
             String hashedPassword = hashPassword("password", salt, challenge);
-            System.out.println(hashedPassword);
+            // System.out.println(hashedPassword);
 
             // Authenticate and get the token
             String[] tokenResponse = authService.authenticate("lauge", hashedPassword);
             String token = tokenResponse[0];
 
-            System.out.println("Token received: " + token);
+            // System.out.println("Token received: " + token);
 
             // Connect to the print service
             PrintService printService = (PrintService) registry.lookup("PrintService");

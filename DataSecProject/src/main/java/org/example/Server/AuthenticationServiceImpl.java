@@ -36,12 +36,12 @@ public class AuthenticationServiceImpl extends UnicastRemoteObject implements Au
             String challenge = activeChallenges.get(username);
             String[] userDetails = passwdFileManager.getUserDetails(username);
 
-            System.out.println(userDetails[2]);
+            // System.out.println(userDetails[2]);
 
             String expectedHash = hashPassword(userDetails[2], challenge);
 
-            System.out.println(clientResponse);
-            System.out.println(expectedHash);
+            // System.out.println(clientResponse);
+            // System.out.println(expectedHash);
 
             if (expectedHash.equals(clientResponse)) {
                 activeChallenges.remove(username); // Invalidate the challenge
@@ -80,6 +80,10 @@ public class AuthenticationServiceImpl extends UnicastRemoteObject implements Au
 
 
     private String generateToken(String username) {
-        return Base64.getEncoder().encodeToString((username + ":" + System.currentTimeMillis()).getBytes());
+        String token = Base64.getEncoder().encodeToString((username + ":" + System.currentTimeMillis()).getBytes());
+        activeTokens.put(token, username);
+        tokenExpiry.put(token, System.currentTimeMillis() + TOKEN_LIFETIME_MS); // Add token expiry time
+        return token;
     }
+
 }

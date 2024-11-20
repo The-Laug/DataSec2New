@@ -24,7 +24,7 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
         validateToken(token);
         printerQueues.putIfAbsent(printer, new ArrayList<>());
         printerQueues.get(printer).add(filename);
-        System.out.println("Added file " + filename + " to printer " + printer);
+        System.out.println("Printed file " + filename + " from printer " + printer);
     }
 
     @Override
