@@ -36,6 +36,13 @@ public class ClientAuthenticator {
             // Example operations
             printService.print(token, "file.txt", "printer1");
             printService.queue(token, "printer1");
+            printService.topQueue(token, "printer1", 0);
+            printService.stop(token);
+            printService.start(token);
+            printService.restart(token);
+            printService.status(token, "printer1");
+            printService.readConfig(token, "config1");
+            printService.setConfig(token, "config1", "value1");
         } catch (Exception e) {
             e.printStackTrace();
         }

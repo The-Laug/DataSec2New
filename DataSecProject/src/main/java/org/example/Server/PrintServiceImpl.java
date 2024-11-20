@@ -30,17 +30,55 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
     @Override
     public List<String> queue(String token, String printer) throws RemoteException {
         validateToken(token);
+        System.out.println("Queue for printer " + printer + ": " + printerQueues.getOrDefault(printer, Collections.emptyList()));
         return printerQueues.getOrDefault(printer, Collections.emptyList());
     }
 
     @Override
     public void topQueue(String token, String printer, int job) throws RemoteException {
         validateToken(token);
+        System.out.println("Moving job " + job + " to the top of the queue for printer " + printer);
         List<String> queue = printerQueues.get(printer);
         if (queue != null && job >= 0 && job < queue.size()) {
             String jobFile = queue.remove(job);
             queue.add(0, jobFile);
         }
+    }
+
+    @Override
+    public void stop(String token) throws RemoteException {
+        validateToken(token);
+        System.out.println("Printer stopped.");
+    }
+
+    @Override
+    public void start(String token) throws RemoteException {
+        validateToken(token);
+        System.out.println("Printer started.");
+    }
+
+    @Override
+    public void restart(String token) throws RemoteException {
+        validateToken(token);
+        System.out.println("Printer restarted.");
+    }
+
+    @Override
+    public void status(String token, String printer) throws RemoteException {
+        validateToken(token);
+        System.out.println("Printer status: OK");
+    }
+
+    @Override
+    public void readConfig(String token, String parameter) throws RemoteException {
+        validateToken(token);
+        System.out.println("Read config: " + parameter);
+    }
+
+    @Override
+    public void setConfig(String token, String parameter, String value) throws RemoteException {
+        validateToken(token);
+        System.out.println("Set config: " + parameter + " = " + value);
     }
 
     private void validateToken(String token) throws RemoteException {
