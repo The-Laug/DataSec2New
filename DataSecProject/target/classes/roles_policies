@@ -1,0 +1,7 @@
+Role=User:print,queue
+Role=Technician:stop,start,restart,readConfig,setConfig,status
+Role=PowerUser:queue,topQueue,restart
+Role=Manager:stop,start,restart,readConfig,setConfig,status,queue,topQueue,print
+Hierarchy=Manager:Technician,PowerUser
+Hierarchy=Technician:User
+Hierarchy=PowerUser:User
