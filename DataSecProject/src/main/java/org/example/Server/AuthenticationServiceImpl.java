@@ -3,6 +3,8 @@ package org.example.Server;
 import org.example.Server.PasswdFileManager;
 import org.example.Shared.AuthenticationService;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -53,6 +55,59 @@ public class AuthenticationServiceImpl extends UnicastRemoteObject implements Au
             }
         }
     }
+    // Validate token and extract username
+    private String extractUsernameFromToken(String token) {
+        if (!activeTokens.containsKey(token)) {
+            return null; // Invalid token
+        }
+
+        long expiryTime = tokenExpiry.get(token);
+        if (System.currentTimeMillis() > expiryTime) {
+            activeTokens.remove(token);
+            tokenExpiry.remove(token);
+            return null; // Token expired
+        }
+
+        // Decode the token and extract the username
+        String decodedToken = new String(Base64.getDecoder().decode(token));
+        String[] parts = decodedToken.split(":");
+        return parts[0]; // Return the username
+    }
+
+    // Check if the user has permission to access the method
+    public boolean hasPermission(String token, String method) {
+        // Extract username from token
+        String username = extractUsernameFromToken(token);
+        if (username == null) {
+            System.out.println("Invalid or expired token.");
+            return false;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader("src/main/resources/groups"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Split the line into user and permissions
+                String[] parts = line.split(":");
+                if (parts.length != 2) continue;
+
+                String user = parts[0].trim();
+                String[] permissions = parts[1].split(",");
+
+                // Check if the username matches
+                if (user.equals(username)) {
+                    // Check if the method is in the permissions
+                    for (String permission : permissions) {
+                        if (permission.trim().equals(method)) {
+                            return true; // Permission granted
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading permissions file: " + e.getMessage());
+        }
+        return false; // Permission denied
+    }
 
 
     @Override
@@ -75,6 +130,8 @@ public class AuthenticationServiceImpl extends UnicastRemoteObject implements Au
             throw new RemoteException("Hashing failed.", e);
         }
     }
+
+
 
 
 

@@ -1,4 +1,7 @@
-Manager
-Janitor
-PowerUsers
-Users
+anders:queue,stop,setConfig
+sigurd:restart,readConfig,setConfig
+lauge:start,restart,print,status
+alice:stop,queue,topQueue,status
+bob:restart,readConfig
+charlie:print,queue,setConfig
+dennis:topQueue,start
