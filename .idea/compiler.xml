@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="DataSecProject" />
+        <module name="demo" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="DataSecProject" target="20" />
+      <module name="demo" target="20" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

@@ -5,7 +5,7 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface AuthenticationService extends Remote {
-    String[] authenticate(String username, String clientResponse) throws RemoteException, IOException;
+    String[] authenticate(String username, String clientResponse) throws Exception;
 
     boolean validateToken(String token) throws RemoteException;
 }

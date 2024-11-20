@@ -9,7 +9,10 @@ import java.rmi.registry.Registry;
 public class PrintServer {
     public static void main(String[] args) {
         try {
-            PasswdFileManager passwdFileManager = new PasswdFileManager("C:/Users/valne/IdeaProjects/DataSec2New/DataSecProject/src/main/java/org/example/resources/passwd");
+            // Specify the resource path relative to src/main/resources
+            String resourcePath = "passwd";
+
+            PasswdFileManager passwdFileManager = new PasswdFileManager(resourcePath);
 
             AuthenticationService authService = new AuthenticationServiceImpl(passwdFileManager);
             PrintService printService = new PrintServiceImpl(authService);

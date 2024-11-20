@@ -5,6 +5,8 @@ import org.example.Shared.PrintService;
 
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.security.MessageDigest;
+import java.util.Base64;
 
 public class ClientAuthenticator {
     public static void main(String[] args) {
@@ -20,6 +22,7 @@ public class ClientAuthenticator {
 
             // Hash the password
             String hashedPassword = hashPassword("password", salt, challenge);
+            System.out.println(hashedPassword);
 
             // Authenticate and get the token
             String[] tokenResponse = authService.authenticate("lauge", hashedPassword);
@@ -39,9 +42,17 @@ public class ClientAuthenticator {
     }
 
     private static String hashPassword(String password, String salt, String challenge) throws Exception {
-        return org.example.Client.BinAscii.hexlify(
-                java.security.MessageDigest.getInstance("SHA-256")
-                        .digest((password + salt + challenge).getBytes())
-        );
+        // Step 1: Hash plaintext password with salt
+        byte[] firstHash = MessageDigest.getInstance("SHA-256")
+                .digest((password + salt).getBytes());
+
+        // Step 2: Hash intermediate result with challenge
+        byte[] finalHash = MessageDigest.getInstance("SHA-256")
+                .digest((Base64.getEncoder().encodeToString(firstHash) + challenge).getBytes());
+
+        return Base64.getEncoder().encodeToString(finalHash);
     }
+
+
+
 }

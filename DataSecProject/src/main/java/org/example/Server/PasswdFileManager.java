@@ -1,13 +1,19 @@
 package org.example.Server;
 
 import java.io.*;
+import java.net.URL;
 import java.util.*;
 
 public class PasswdFileManager {
     private final String passwdFilePath;
 
-    public PasswdFileManager(String filePath) {
-        this.passwdFilePath = filePath;
+    public PasswdFileManager(String resourcePath) {
+        // Use ClassLoader to locate the resource file
+        URL resourceUrl = getClass().getClassLoader().getResource(resourcePath);
+        if (resourceUrl == null) {
+            throw new IllegalArgumentException("Resource file not found: " + resourcePath);
+        }
+        this.passwdFilePath = resourceUrl.getPath();
     }
 
     // Add a user to the passwd file
@@ -102,4 +108,3 @@ public class PasswdFileManager {
         throw new IllegalArgumentException("User not found.");
     }
 }
-

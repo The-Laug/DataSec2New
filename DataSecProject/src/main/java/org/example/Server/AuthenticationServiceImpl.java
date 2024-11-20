@@ -25,26 +25,35 @@ public class AuthenticationServiceImpl extends UnicastRemoteObject implements Au
     }
 
     @Override
-    public String[] authenticate(String username, String clientResponse) throws IOException{
+    public String[] authenticate(String username, String clientResponse) throws Exception {
         if (clientResponse == null) {
-            String salt = passwdFileManager.getUserDetails(username)[1];
+            String[] userDetails = passwdFileManager.getUserDetails(username); // [username, salt, hashedPassword]
+            String salt = userDetails[1];
             String challenge = generateChallenge();
             activeChallenges.put(username, challenge);
             return new String[]{salt, challenge};
         } else {
+            String challenge = activeChallenges.get(username);
             String[] userDetails = passwdFileManager.getUserDetails(username);
-            String expectedHash = hashPassword(userDetails[2], userDetails[1], activeChallenges.get(username));
+
+            System.out.println(userDetails[2]);
+
+            String expectedHash = hashPassword(userDetails[2], challenge);
+
+            System.out.println(clientResponse);
+            System.out.println(expectedHash);
+
             if (expectedHash.equals(clientResponse)) {
-                activeChallenges.remove(username);
+                activeChallenges.remove(username); // Invalidate the challenge
                 String token = generateToken(username);
                 activeTokens.put(token, username);
-                tokenExpiry.put(token, System.currentTimeMillis() + TOKEN_LIFETIME_MS);
                 return new String[]{token};
             } else {
                 throw new RemoteException("Authentication failed.");
             }
         }
     }
+
 
     @Override
     public boolean validateToken(String token) throws RemoteException {
@@ -56,15 +65,19 @@ public class AuthenticationServiceImpl extends UnicastRemoteObject implements Au
         return Long.toHexString(random.nextLong());
     }
 
-    private String hashPassword(String password, String salt, String challenge) throws RemoteException {
+    private String hashPassword(String storedHashedPassword, String challenge) throws RemoteException {
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            String combined = password + salt + challenge;
-            return Base64.getEncoder().encodeToString(digest.digest(combined.getBytes()));
+            return Base64.getEncoder().encodeToString(
+                    MessageDigest.getInstance("SHA-256")
+                            .digest((storedHashedPassword + challenge).getBytes())
+            );
         } catch (Exception e) {
             throw new RemoteException("Hashing failed.", e);
         }
     }
+
+
+
 
     private String generateToken(String username) {
         return Base64.getEncoder().encodeToString((username + ":" + System.currentTimeMillis()).getBytes());
